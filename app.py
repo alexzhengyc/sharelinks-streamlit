@@ -1,22 +1,19 @@
 import streamlit as st
-import apps 
-from apps.allpages import page_group
+from apps.business import market_page  # Updated import
 
 
 def main():
-    page = page_group("p")
-    
     with st.sidebar:
-        st.title(f"Sharelinks")
-
-        page.item("Marketplace", apps.market_page, default=True)
-        page.item("Business Dashboard", apps.business_page)
-        page.item("Influencer Dashboard", apps.influencer_page)
-
-    page.show()
+        st.title("Sharelinks")
+        role = st.selectbox(options=["Business", "Influencer"], label="Choose your role")
+    
+    # Currently, both roles lead to the same page. This might need to be updated in the future.
+    if role == "Business":
+        market_page()
+    else:  # Influencer
+        market_page()
     
 if __name__ == "__main__":
-    
     st.set_page_config(
         page_title="Sharelinks",
         page_icon=":star:",
