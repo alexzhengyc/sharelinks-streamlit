@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
+import uuid
+from ..config import OFFER_COLUMNS
 
 # Initialize or load offers
 def load_offers():
@@ -9,11 +11,12 @@ def load_offers():
         if os.path.exists("data/offers.csv"):
             st.session_state.offers = pd.read_csv("data/offers.csv")
         else:
-            st.session_state.offers = pd.DataFrame(columns=["business_id", "Brand / Product", "Brand / Product Description", "Brand / Product URL", "Payment per 100 Clicks", "Payment per Purchase", "Start Date", "Maximum Budget", "Preferred Influencer Profile"])
+            st.session_state.offers = pd.DataFrame(columns=OFFER_COLUMNS)
     return st.session_state.offers
 
-if "business_id" not in st.session_state:
-    st.session_state.business_id = "1"
+def load_business():
+    if "business_id" not in st.session_state:
+        st.session_state.business_id = "1"
 
 
 # Post a new offer
@@ -35,6 +38,7 @@ def post_offer():
         if submitted:
             offers = load_offers()
             new_offer = pd.DataFrame({
+                "offer_id": [str(uuid.uuid4())],
                 "business_id": [st.session_state.business_id],
                 "Brand / Product": [product_name],
                 "Brand / Product Description": [product_description],
@@ -56,6 +60,7 @@ def main():
     st.title("Marketplace")
 
     offers = load_offers()
+    load_business()
     if len(offers) == 0:
         st.write("No offers available at the moment.")
     else:

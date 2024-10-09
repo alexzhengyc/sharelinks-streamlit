@@ -1,0 +1,1 @@
+from .market_page import main as influencer_market_page

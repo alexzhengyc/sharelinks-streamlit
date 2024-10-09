@@ -1,5 +1,6 @@
 import streamlit as st
-from apps.business import market_page  # Updated import
+from apps.business import business_market_page
+from apps.influencer import influencer_market_page
 
 
 def main():
@@ -9,9 +10,9 @@ def main():
     
     # Currently, both roles lead to the same page. This might need to be updated in the future.
     if role == "Business":
-        market_page()
+        business_market_page()
     else:  # Influencer
-        market_page()
+        influencer_market_page()
     
 if __name__ == "__main__":
     st.set_page_config(
