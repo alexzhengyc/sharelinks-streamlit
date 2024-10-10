@@ -53,7 +53,6 @@ def post_offer():
             st.session_state.offers.to_csv("data/offers.csv", index=False)
             st.success("Offer Posted Successfully!")
             st.session_state.posting = False
-            st.rerun()
 
 # Browse offers created by other businesses
 def main():
@@ -71,6 +70,7 @@ def main():
 
     if "posting" in st.session_state and st.session_state.posting:
         post_offer()
+        st.rerun()
 
 if __name__ == "__main__":
     main()
