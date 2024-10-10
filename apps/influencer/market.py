@@ -24,6 +24,24 @@ def load_influencer():
         else:
             st.session_state.shopping_cart = pd.DataFrame(columns=["influencer_id"] + OFFER_COLUMNS)
 
+    if "deals" not in st.session_state:
+        if os.path.exists("data/deals.csv"):
+            all_deals = pd.read_csv("data/deals.csv", dtype={"influencer_id": str, "business_id": str})
+            st.session_state.deals = all_deals[all_deals["influencer_id"] == st.session_state.influencer_id]
+        else:
+            st.session_state.deals = pd.DataFrame(columns=["influencer_id", "status"] + OFFER_COLUMNS)
+
+
+def checkout():
+    shopping_cart_copy = st.session_state.shopping_cart.copy()
+    shopping_cart_copy["status"] = "pending"
+    all_deals = pd.read_csv("data/deals.csv", dtype={"influencer_id": str, "business_id": str})
+    all_deals = pd.concat([all_deals, shopping_cart_copy], ignore_index=True)
+    all_deals.to_csv("data/deals.csv", index=False)
+    st.session_state.shopping_cart = pd.DataFrame(columns=["influencer_id"] + OFFER_COLUMNS)
+    st.info("Checkout successful!")
+    st.rerun()
+
 # Browse offers created by other businesses
 def main():
     st.title("Marketplace")
@@ -53,14 +71,19 @@ def main():
         )
         
         # Handle selections
+        new_items = []
         for index, row in edited_df.iterrows():
             if row['Pick'] and not st.session_state.offers.at[index, 'Pick'] and row['offer_id'] not in st.session_state.shopping_cart['offer_id'].values:
                 new_item = row.to_dict()
                 new_item["influencer_id"] = st.session_state.influencer_id
-                st.session_state.shopping_cart = pd.concat([st.session_state.shopping_cart, pd.DataFrame([new_item])], ignore_index=True)
-                st.success(f"Added {row['Brand / Product']} to your cart!")
-                st.session_state.shopping_cart.to_csv("data/shopping_cart.csv", index=False)
+                new_items.append(new_item)
                 st.session_state.offers.at[index, 'Pick'] = True
+        
+        if new_items:
+            st.session_state.shopping_cart = pd.concat([st.session_state.shopping_cart, pd.DataFrame(new_items)], ignore_index=True)
+            all_shopping_cart = pd.read_csv("data/shopping_cart.csv", dtype={"influencer_id": str, "business_id": str})
+            all_shopping_cart = pd.concat([all_shopping_cart, pd.DataFrame(new_items)], ignore_index=True)
+            all_shopping_cart.to_csv("data/shopping_cart.csv", index=False)
         
         # Update the offers in session state
         st.session_state.offers = edited_df
@@ -69,8 +92,10 @@ def main():
     if len(st.session_state.shopping_cart) == 0:
         st.write("Empty cart.")
     else:
-
         st.dataframe(st.session_state.shopping_cart)
+
+    st.button("Checkout", on_click=checkout)
+
 
 if __name__ == "__main__":
     main()

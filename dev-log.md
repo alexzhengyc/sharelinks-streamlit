@@ -18,3 +18,14 @@ Completed:
 
 Next Step:
 - Implement checkout function and dashboard for influencer
+
+
+Date: October 9, 2024
+Task: Implement checkout function and dashboard for influencer
+
+Completed:
+- Implement checkout function and dashboard for influencer
+
+Next Step:
+- Implement dashboard for business
+

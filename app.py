@@ -1,6 +1,6 @@
 import streamlit as st
-from apps.business import business_market_page
-from apps.influencer import influencer_market_page
+from apps.business import business_market, business_dashboard
+from apps.influencer import influencer_market, influencer_dashboard
 
 
 def main():
@@ -10,9 +10,17 @@ def main():
     
     # Currently, both roles lead to the same page. This might need to be updated in the future.
     if role == "Business":
-        business_market_page()
+        page = st.selectbox(options=["Marketplace", "Dashboard"], label="Choose your page")
+        if page == "Marketplace":
+            business_market()
+        else:
+            business_dashboard()
     else:  # Influencer
-        influencer_market_page()
+        page = st.selectbox(options=["Marketplace", "Dashboard"], label="Choose your page")
+        if page == "Marketplace":
+            influencer_market()
+        else:
+            influencer_dashboard()
     
 if __name__ == "__main__":
     st.set_page_config(
