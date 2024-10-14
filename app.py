@@ -9,7 +9,7 @@ import re
 app = Flask(__name__)
 
 # Database setup using environment variables for security
-DATABASE_URI = os.getenv('DATABASE_URI', 'postgresql+psycopg2://tracking_user:your_password@localhost/tracking_app_db')
+DATABASE_URI = os.getenv('DATABASE_URI', 'postgresql+psycopg2://alex:123@localhost/links')
 
 engine = create_engine(DATABASE_URI)
 Session = sessionmaker(bind=engine)
@@ -57,7 +57,8 @@ def generate_link(influencer_name):
         session.commit()
 
         full_link = url_for('redirect_link', unique_code=unique_code, _external=True)
-        return f'Generated link for {influencer_name}: {full_link}'
+        print(f"Generated link {influencer_name}: {full_link}")
+        return full_link
     except SQLAlchemyError as e:
         session.rollback()
         app.logger.error(f"Database error: {e}")
@@ -72,7 +73,7 @@ def redirect_link(unique_code):
         if not tracking_link:
             abort(404)
 
-        # Log the visit
+        # Log every visit
         visit = Visit(
             tracking_link_id=tracking_link.id,
             ip_address=request.remote_addr,
@@ -90,7 +91,8 @@ def redirect_link(unique_code):
     finally:
         session.close()
 
-@app.route('/influencer_visits/<influencer_name>', methods=['GET'])
+
+@app.route('/track_influencer/<influencer_name>', methods=['GET']) 
 def influencer_visits(influencer_name):
     try:
         # Check if the influencer exists
@@ -106,21 +108,30 @@ def influencer_visits(influencer_name):
         # Initialize a list to store visit counts
         visits_data = []
         total_visits = 0
+        total_unique_visits = 0
 
         # Loop through all tracking links to collect visits
         for link in tracking_links:
             visit_count = session.query(Visit).filter_by(tracking_link_id=link.id).count()
+            unique_visit_count = session.query(
+                Visit.ip_address, Visit.user_agent
+            ).filter_by(tracking_link_id=link.id).distinct().count()
+
             total_visits += visit_count
+            total_unique_visits += unique_visit_count
+
             visits_data.append({
-                'tracking_link': link.destination_url,
-                'unique_code': link.unique_code,
-                'visit_count': visit_count
+                'destination_url': link.destination_url,
+                'link_code': link.unique_code,
+                'visits': visit_count,
+                'unique_visits': unique_visit_count
             })
 
         # Return influencer visit information as JSON
         return {
             'influencer_name': influencer_name,
             'total_visits': total_visits,
+            'total_unique_visits': total_unique_visits,
             'visit_details': visits_data
         }, 200
     except SQLAlchemyError as e:
