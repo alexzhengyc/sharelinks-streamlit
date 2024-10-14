@@ -29,3 +29,6 @@ Completed:
 Next Step:
 - Implement dashboard for business
 
+
+Date: October 11, 2024
+Task: Implement redirect and tracking
