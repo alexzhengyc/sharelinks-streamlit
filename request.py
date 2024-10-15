@@ -43,7 +43,29 @@ def track_influencer(influencer_name):
         print(f"Error: {response.status_code}")
         print(response.text)
 
+def track_destination(destination_url):
+    url = f"{base_url}/track_destination?destination_url={destination_url}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        print("Success!")
+        print(response.text)
+    else:
+        print(f"Error: {response.status_code}")
+        print(response.text)
+
+def track_link(unique_code):
+    url = f"{base_url}/track_link/{unique_code}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        print("Success!")
+        print(response.text)
+    else:
+        print(f"Error: {response.status_code}")
+        print(response.text)
+
 if __name__ == "__main__":
     # generate_link()
     go_to_link("5A0230")
     track_influencer("@alex")
+    track_destination("https://laeuphoria.com")
+    track_link("5A0230")

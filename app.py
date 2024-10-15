@@ -142,7 +142,75 @@ def influencer_visits(influencer_name):
         session.close()
 
 
+@app.route('/track_destination', methods=['GET'])
+def track_destination():
+    try:
+        # Get destination_url from query parameters
+        destination_url = request.args.get('destination_url')
+        if not destination_url:
+            return 'Missing destination URL.', 400
 
+        # Check if the destination URL exists
+        tracking_links = session.query(TrackingLink).filter_by(destination_url=destination_url).all()
+        if not tracking_links:
+            return f'Destination URL {destination_url} not found.', 404
+        
+        visits_data = []
+        total_visits = 0
+        total_unique_visits = 0
+
+        for link in tracking_links:
+            visit_count = session.query(Visit).filter_by(tracking_link_id=link.id).count()
+            unique_visit_count = session.query(
+                Visit.ip_address, Visit.user_agent
+            ).filter_by(tracking_link_id=link.id).distinct().count()
+
+            total_visits += visit_count
+            total_unique_visits += unique_visit_count
+
+            visits_data.append({
+                'link_code': link.unique_code,
+                'visits': visit_count,
+                'unique_visits': unique_visit_count
+            })
+
+        return {
+            'destination_url': destination_url,
+            'total_visits': total_visits,
+            'total_unique_visits': total_unique_visits,
+            'visits_data': visits_data
+        }, 200
+    except SQLAlchemyError as e:
+        session.rollback()
+        app.logger.error(f"Database error: {e}")
+        return 'An error occurred while fetching visits.', 500
+    finally:
+        session.close()
+    
+@app.route('/track_link/<unique_code>', methods=['GET'])
+def track_link(unique_code):
+    try:
+        # Check if the unique code exists
+        tracking_link = session.query(TrackingLink).filter_by(unique_code=unique_code).first()
+        if not tracking_link:
+            return f'Unique code {unique_code} not found.', 404
+
+        # Get all visits for this tracking link
+        visit_count = session.query(Visit).filter_by(tracking_link_id=tracking_link.id).count()
+        unique_visit_count = session.query(
+            Visit.ip_address, Visit.user_agent
+        ).filter_by(tracking_link_id=tracking_link.id).distinct().count()
+
+        return {
+            'visits': visit_count,
+            'unique_visits': unique_visit_count
+        }, 200
+    except SQLAlchemyError as e:
+        session.rollback()
+        app.logger.error(f"Database error: {e}")
+        return 'An error occurred while fetching visits.', 500
+    finally:
+        session.close()
 
 if __name__ == '__main__':
     app.run(debug=True)
